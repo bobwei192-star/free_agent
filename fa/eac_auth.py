@@ -167,7 +167,7 @@ def poll(client: Session, link: str) -> dict:
     return client.api("GET", f"/eac/login/poll?link={urllib.parse.quote(link, safe='')}")
 
 
-def wait(client: Session, link: str, timeout: int = 240, interval: float = 2.5) -> dict:
+def wait(client: Session, link: str, timeout: int = 900, interval: float = 2.5) -> dict:
     """轮询到授权完成 / 过期 / 出错，最多等 timeout 秒。"""
     deadline = time.time() + timeout
     last: dict = {}

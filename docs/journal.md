@@ -15,6 +15,9 @@
 | harness 实跑验证 | ✅ | 走宿主 RPC（`session/selectModel` + `session/prompt` + `session/projections`）在真实会话里各跑一轮：`deepseek-v4.1-flash-free` 被上游 429 `Free usage limit reached`（`providerRetryAfterMs` 38 334 000 ≈ 次日 08:00 CST 重置），`nvidia/nemotron-3.5-lightning:free` 成功，一轮 9 916 输入 / 119 输出 / TTFT 1 937 ms、解码 348 ms ≈ 342 tok/s |
 | 用量口径 | ✅ | 输入拆解 system 1 402 + 工具 schema 7 395 + 消息 463：免费车道吃量的是 system 与工具清单，不是用户那句话；账本落在 `~/.dsh/our-free-model/stats.json` 的 `samples[]`（`origin:harness`）与会话投影 `tokenUsage` / `contextBreakdown` |
 | 排错手册 | ✅ | 新增「免费车道 429」与「怎么看 harness token 用量」两节，把 429 与 `AUTHORIZATION_REQUIRED` 两种失败分开定性 |
+| EAC 授权落地 | ✅ | 用户完成 GitHub 登录 + star，`fa eac` 现在 `已授权 是 / 已 star 是 / @bobwei192-star / 本机凭据 已保存`，`~/.dsh/our-free-model/eac-user.json`（0600）已写入。上一轮「显示 done 但没落地」的原因是 240 秒等待窗口先到期、令牌没人 poll 领取 |
+| `--timeout` 默认 240 → 900 秒 | ✅ | `fa/cli.py` + `fa/eac_auth.py`：登录到 star 是人手操作，4 分钟窗口太紧；文档同步「超时不等于失败，用 `--collect <link>` 补领」判据 |
+| EAC 车道实跑 | ⚠️ | 授权已生效但车道拥堵：`z-ai/glm-5.3-flash` 成功一轮 12 968 输入 / 99 输出、43 tok/s，**TTFT 287 986 ms（4.8 分钟）**；随后多次在 300 秒整被切断。`deepseek-ai/deepseek-v4.1-flash` 三次尝试（132/30/240 秒）全无响应，`/bench` 同样 240 秒超时 —— 属车道侧可用性，不是授权问题 |
 
 ## 〇、本轮完成（2026-11-16）：README 完整使用指南 + 自启端口修复
 

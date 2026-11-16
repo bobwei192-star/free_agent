@@ -66,6 +66,9 @@ await fetch('/api/our-free-model/eac/status').then(r => r.json())
 
 - **star 是实时校验的**：取消 star 后 `authorized` 会变回 `false`，重新 star 即可恢复，无需重新登录。
 - **link 有 15 分钟领取窗口**：窗口内随时能用 `fa eac --collect <link>` 补领；过期后 `status: expired`，重新 `fa eac --login`。
+- **等待超时不等于授权失败**：`--login` 的等待窗口（默认 900 秒）到点只代表「本机没人去 poll」，
+  GitHub 那侧的登录与 star 已经生效。此时别重开登录，直接用上一轮打印的 link 补领。
+  判定只认两件事：`fa eac` 里 `本机凭据` 是否为 `已保存`，以及 `~/.dsh/our-free-model/eac-user.json` 是否存在。
 - **免费车道不受影响**：`glm-5.3-flash-free`、`deepseek-v4.1-flash-free` 这类 `*-free` 模型无需任何授权，急着用可以直接选它们。
 - **授权页打不开 GitHub**：是浏览器侧网络问题，不是插件网关问题。`fa proxy` 看写法，给浏览器配好代理再发起登录。
 - **换端口 / 换 token**：`fa eac --port 3081 --token <journal 里最新那条>`。令牌默认从

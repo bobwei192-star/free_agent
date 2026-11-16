@@ -535,7 +535,7 @@ def build_parser() -> argparse.ArgumentParser:
     p = sub.add_parser("eac", help="EAC 协付车道：查看/完成 GitHub 授权")
     p.add_argument("--login", action="store_true", help="发起 GitHub 登录并等待授权完成")
     p.add_argument("--collect", metavar="LINK", help="领取此前一次登录的授权（link）")
-    p.add_argument("--timeout", type=float, default=240, help="等待秒数（默认 240）")
+    p.add_argument("--timeout", type=float, default=900, help="等待秒数（默认 900，link 只有 15 分钟有效）")
     p.add_argument("--no-open", action="store_true", help="不自动打开浏览器")
     p.add_argument("--port", type=int, help="dsh Web UI 端口（默认读单元文件，回落 3080）")
     p.add_argument("--token", help="访问令牌（默认从 journal / ~/.dsh/logs 里找）")

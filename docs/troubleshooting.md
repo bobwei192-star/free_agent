@@ -137,6 +137,32 @@ fa eac --collect LINK  # 上一轮 15 分钟内没领到，凭 link 补领
 浏览器里用 GitHub 登录并 star `Ebony-Vinyl/dsh-our-free-model` 即完成授权；`*-free` 免费模型不受此问题影响。
 根因与手工兜底见 [EAC 授权](eac-auth.md)。
 
+**`fa eac --login` 显示完成、状态却还是未授权**：登录+star 成功不等于授权落地。令牌是
+`GET /eac/login/poll?link=…` 领回来后由插件服务端写 `~/.dsh/our-free-model/eac-user.json` 才算数；
+等待窗口先到期、或页面没回到网关，都会留下「GitHub 已登录但本机没凭据」。
+判据只看两条：`fa eac` 的 `本机凭据` 是否 `已保存`、`~/.dsh/our-free-model/eac-user.json` 是否存在。
+补救用**同一轮**打印的 link：`fa eac --collect <link>`（link 15 分钟内有效，过期才需要重新 `--login`）。
+`--timeout` 默认已提到 900 秒。
+
+## EAC 车道已授权但请求超时
+
+实测授权通过后 `z-ai/glm-5.3-flash` 能跑通，但首 token 延迟极高：成功的一次
+`ttftMs 287 986`（4.8 分钟）、43 tok/s；后续几次在 300 秒整被切断
+（`ok:false / noUsage:true / elapsedMs ≈ 300 005`），`deepseek-ai/deepseek-v4.1-flash` 三次尝试
+（132 s / 30 s / 240 s）全部无响应。这是车道侧拥塞，不是授权问题。
+
+单模型直测走 `/api/our-free-model/bench`（POST `{"model":"…","effort":"…"}`），它和别的
+同源接口一样要先换 Cookie，最省事的是在浏览器 DevTools 控制台里发：
+
+```js
+await fetch('/api/our-free-model/bench', {method: 'POST',
+  headers: {'content-type': 'application/json'},
+  body: JSON.stringify({model: 'z-ai/glm-5.3-flash'})}).then(r => r.json())
+```
+
+拥堵时段优先退回 Kilo 组免费车道（`nvidia/nemotron-3.5-lightning:free` 实测一轮
+9 916 输入 / 119 输出、TTFT 1.9 秒），EAC 留给确实需要的项目。
+
 ## 清单改坏了 / JSON 解析失败
 
 ```bash
