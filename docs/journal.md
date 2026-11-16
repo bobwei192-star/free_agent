@@ -12,6 +12,9 @@
 | `fa eac` 新子命令 | ✅ | `fa/eac_auth.py`：`?token=` 换 30 天 Cookie（journal → `~/.dsh/logs/startup-*.log` → `DSH_WEB_TOKEN`）→ `POST /eac/login/start` → `GET /eac/login/poll?link=`；令牌由插件服务端写 `~/.dsh/our-free-model/eac-user.json`，命令行不经手凭据 |
 | 文档 | ✅ | 新增 [docs/eac-auth.md](eac-auth.md)（根因、命令路径、浏览器控制台手工兜底、状态码对照），并补排错手册与 README（命令详解 / FAQ / 文档索引） |
 | 新增测试 | ✅ | `tests/test_eac_auth.py` 共 11 例（令牌提取、状态渲染、请求形状、CLI 解析、轮询终止），全套 41 例通过 |
+| harness 实跑验证 | ✅ | 走宿主 RPC（`session/selectModel` + `session/prompt` + `session/projections`）在真实会话里各跑一轮：`deepseek-v4.1-flash-free` 被上游 429 `Free usage limit reached`（`providerRetryAfterMs` 38 334 000 ≈ 次日 08:00 CST 重置），`nvidia/nemotron-3.5-lightning:free` 成功，一轮 9 916 输入 / 119 输出 / TTFT 1 937 ms、解码 348 ms ≈ 342 tok/s |
+| 用量口径 | ✅ | 输入拆解 system 1 402 + 工具 schema 7 395 + 消息 463：免费车道吃量的是 system 与工具清单，不是用户那句话；账本落在 `~/.dsh/our-free-model/stats.json` 的 `samples[]`（`origin:harness`）与会话投影 `tokenUsage` / `contextBreakdown` |
+| 排错手册 | ✅ | 新增「免费车道 429」与「怎么看 harness token 用量」两节，把 429 与 `AUTHORIZATION_REQUIRED` 两种失败分开定性 |
 
 ## 〇、本轮完成（2026-11-16）：README 完整使用指南 + 自启端口修复
 

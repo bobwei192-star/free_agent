@@ -103,6 +103,25 @@ fa info workbuddy
 
 个别工具 `--version` 输出的是横幅而不是版本号，`fa` 会退化为显示第一行文本，不影响使用。
 
+## 免费车道报 `Free usage limit reached`（HTTP 429）
+
+`*-free` 不等于无限用量：车道按天配额，用满后上游直接 429，并给出
+`providerRetryAfterMs`（实测 `deepseek-v4.1-flash-free` 为 38 334 000 ms，即次日 08:00 CST / 00:00 UTC 重置）。
+特征：会话 `turn/end` 的 `reason.kind = error`，插件 `stats.json` 里对应样本
+`ok:false / noUsage:true / input:0`，`failed` 计数增加，模型本身没跑。
+
+换一条车道即可继续：`fa list` 里 `our-free-model` 的 Kilo 组（如
+`nvidia/nemotron-3.5-lightning:free`）与 OpenCode 组配额独立；EAC 车道需先 `fa eac --login`。
+
+## 想看 harness 一轮真实用了多少 token
+
+`~/.dsh/our-free-model/stats.json` 是插件侧的逐次账本，`samples[]` 每条带
+`origin`（`harness` / `title` 等）、`input` / `output` / `ttftMs` / `elapsedMs`；`models[<id>]`
+是累计值，`logical.turns` 是总轮数。Web 端另有一份会话侧账本，在设置外的会话面板里读
+`tokenUsage` 与 `contextBreakdown`（system / tools / message 三段），实测一轮空转：
+输入 9 916 = system 1 402 + 工具 schema 7 395 + 消息 463，输出 119 —— 免费车道真正吃量的是
+system + 工具清单，不是用户那句话，所以短问题也别频繁开新会话。
+
 ## EAC 模型报 `AUTHORIZATION_REQUIRED`，且找不到「EAC 渠道授权」入口
 
 dsh 某些 Web 版本（实测 `0.2.2-rc.1`）只挂载 `dsh-our-free-model` 的服务端半区，插件十一页面板所在的
