@@ -41,6 +41,26 @@ fa install cli          # 安装全部终端 Agent（缺依赖的会提示）
 fa run gemini           # 启动；首次运行按提示登录
 ```
 
+### 开机自启动（Linux / WSL）
+
+把 DeepSeek Harness 的 Web UI（`http://127.0.0.1:3080/`）注册成 systemd 用户服务，开机自动拉起：
+
+```bash
+fa autostart dsh                # 写入 ~/.config/systemd/user/dsh-web.service 并 enable --now
+fa autostart dsh --status       # 看是否启用 / 运行中 / 端口监听
+fa autostart dsh --disable      # 停用并停止
+journalctl --user -u dsh-web.service -f   # 看日志
+```
+
+要点：
+
+- 单元写在**用户级** `~/.config/systemd/user/`，不需要 sudo，不污染系统目录；
+- 自动 `loginctl enable-linger`，**不登录桌面也会开机自启**；
+- 自动探测本机 HTTP 代理端口（环境变量 → clash 常见端口），写进单元的 `Environment=`；需要直连时加 `--no-proxy`；
+- 端口由 `--port` 指定（默认 3080），只监听回环地址；
+- 浏览器首访问用 dsh 打印的 `?token=` 链接换 30 天 Cookie，之后直接开 `http://127.0.0.1:3080/` 即可。
+- `fa doctor` 里有一栏「开机自启」，随时能看到自启服务是否启用 / 运行中 / 端口是否监听。
+
 ### Windows PowerShell
 
 ```powershell
@@ -77,6 +97,7 @@ uv tool install .
 | `fa login [id]` | 查看登录方式；有登录命令的直接执行 |
 | `fa doctor [--net] [--strict]` | 体检命令、依赖、网络；`--strict` 有缺失时非零退出 |
 | `fa update [id...]` | 升级已安装工具（npm / uv / 自带 updater） |
+| `fa autostart dsh [--port 3080] [--disable] [--status]` | DeepSeek Harness 开机自启（systemd --user） |
 | `fa proxy [--port 7890]` | 打印 bash / PowerShell 代理写法 |
 | `fa catalog --markdown` | 由 JSON 重新生成 `docs/catalog.md` |
 
@@ -107,6 +128,7 @@ Free_Agent/
 │   ├── catalog.py         #   清单加载 / 校验 / 平台回退
 │   ├── installer.py       #   命令拼装与执行
 │   ├── doctor.py          #   体检
+│   ├── autostart.py       #   systemd --user 开机自启（dsh web）
 │   ├── platforms.py       #   平台探测、命令执行、网络探测
 │   └── ui.py              #   颜色与中英混排表格
 ├── fa.sh                  # POSIX 启动器（被 install.sh 链接为 fa）

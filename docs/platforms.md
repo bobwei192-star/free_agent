@@ -41,6 +41,34 @@ Electron 应用（Cursor / TRAE / Qoder / WorkBuddy / Antigravity / VS Code）�
 sudo apt install ~/Downloads/cursor_*.deb ~/Downloads/Qoder-CN-linux-amd64.deb
 ```
 
+## 开机自启动（systemd --user）
+
+`fa autostart dsh` 只写用户级单元，不碰 `/etc/systemd/system`：
+
+| 项目 | 值 |
+|---|---|
+| 单元文件 | `~/.config/systemd/user/dsh-web.service` |
+| 启动命令 | `dsh web --no-open --port 3080` |
+| 依赖 | `network-online.target` |
+| 重启策略 | `Restart=always`（5 秒后重试） |
+| linger | 自动 `loginctl enable-linger`（不登录也自启） |
+| 代理 | 自动探测本地 HTTP 代理端口写进 `Environment=`；`--no-proxy` 可关闭 |
+
+常用命令：
+
+```bash
+systemctl --user status dsh-web.service        # 看状态
+systemctl --user restart dsh-web.service       # 重启
+journalctl --user -u dsh-web.service -f        # 跟日志（里面有带 token 的访问链接）
+systemctl --user disable --now dsh-web.service  # 停用
+```
+
+排查：
+
+- 端口被占（`EADDRINUSE`）：先停掉手动跑的 `dsh web`，再 `systemctl --user restart dsh-web.service`；
+- 代理没起（开机时 clash 还没运行）：模型请求会失败，等 clash 起来后无需重启服务；
+- 浏览器提示未授权：用日志里的 `?token=` 链接打开一次，Cookie 有效期 30 天。
+
 ## WSL
 
 - 终端 Agent 直接装在 WSL 里最省事，`fa install cli` 全流程可用。

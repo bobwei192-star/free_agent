@@ -8,7 +8,7 @@ import os
 import shlex
 import sys
 
-from fa import __version__, doctor, installer, platforms, ui
+from fa import __version__, autostart, doctor, installer, platforms, ui
 from fa.catalog import Catalog, CatalogError, Tool, load
 
 EPILOG = """示例：
@@ -19,6 +19,7 @@ EPILOG = """示例：
   fa doctor --net             体检命令、依赖与网络
   fa login codex              执行某家的登录流程
   fa update                   升级已安装的终端 Agent
+  fa autostart dsh            让 DeepSeek Harness 开机自启（systemd --user）
   fa catalog --markdown       生成工具清单文档
 """
 
@@ -197,6 +198,18 @@ def cmd_run(args, catalog: Catalog, plat: str) -> int:
     extra = list(args.args)
     if extra and extra[0] == "--":
         extra = extra[1:]
+    extra = tool.run_args(plat) + extra
+
+    # 已经有开机自启服务在跑同一个命令时，别再起一份（端口会冲突）
+    service = next((key for key, spec in autostart.SERVICES.items() if spec["binary"] == binary), None)
+    if service:
+        info = autostart.status(service)
+        if info["active"]:
+            ui.ok(f"{tool.name} 已在运行（开机自启服务 {info['unit']}）")
+            ui.say(f"  地址  {info['url']}")
+            ui.say(ui.dim(f"  日志  journalctl --user -u {info['unit']} -f"))
+            return 0
+
     path = platforms.which(binary) or binary
     return platforms.exec_replace([path] + extra)
 
@@ -269,6 +282,59 @@ def cmd_proxy(args, catalog: Catalog, plat: str) -> int:
     if current:
         ui.say()
         ui.say(ui.green("当前已设置：") + ", ".join(f"{k}={v}" for k, v in current.items()))
+    return 0
+
+
+# --------------------------------------------------------------------- autostart
+def cmd_autostart(args, catalog: Catalog, plat: str) -> int:
+    name = autostart.resolve(args.service)
+    if not name:
+        ui.error(f"未知服务 {args.service}；可用：{', '.join(sorted(autostart.SERVICES))}")
+        return 2
+
+    if plat not in ("linux", "wsl"):
+        ui.error(f"开机自启动目前只支持 systemd --user（Linux / WSL），当前平台：{platforms.label(plat)}")
+        return 2
+
+    if args.disable:
+        ok_flag, detail = autostart.disable(name)
+        if ok_flag:
+            ui.ok(f"已停用 {detail}")
+            return 0
+        ui.error(detail)
+        return 1
+
+    if args.status:
+        info = autostart.status(name)
+        rows = [
+            ("服务", info["title"]),
+            ("单元", info["unit"]),
+            ("单元文件", info["unit_file"]),
+            ("已安装", "是" if info["installed"] else "否"),
+            ("已启用", "是" if info["enabled"] else "否"),
+            ("运行中", "是" if info["active"] else "否"),
+            ("端口监听", "是" if info["listening"] else "否"),
+            ("linger（不登录也自启）", "是" if info["linger"] else "否"),
+            ("地址", info["url"]),
+        ]
+        width = max(ui.visible_width(label) for label, _ in rows)
+        for label, value in rows:
+            ui.say(f"  {ui.dim(ui.pad(label, width))}  {value}")
+        return 0
+
+    proxy_port = None if args.no_proxy else (args.proxy_port or autostart.detect_proxy_port())
+    ok_flag, detail = autostart.enable(name, port=args.port, proxy_port=proxy_port)
+    if not ok_flag:
+        ui.error(detail)
+        return 1
+
+    ui.ok(f"{autostart.SERVICES[name]['title']} 已设置开机自启动")
+    ui.say(f"  单元文件  {detail}")
+    ui.say(f"  代理环境  {'http://127.0.0.1:' + str(proxy_port) if proxy_port else '未设置（直连）'}")
+    ui.say(f"  地址      http://127.0.0.1:{args.port or autostart.SERVICES[name]['port']}/")
+    ui.say()
+    ui.say(ui.dim("查看日志：journalctl --user -u %s -f" % autostart.SERVICES[name]["unit"]))
+    ui.say(ui.dim("停用自启：fa autostart %s --disable" % name))
     return 0
 
 
@@ -391,6 +457,15 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--host", default="127.0.0.1")
     p.add_argument("--port", type=int, default=7890)
     p.set_defaults(func=cmd_proxy)
+
+    p = sub.add_parser("autostart", help="配置开机自启动（systemd --user）")
+    p.add_argument("service", nargs="?", default="dsh", help="服务名（dsh）")
+    p.add_argument("--port", type=int, help="监听端口（dsh 默认 3080）")
+    p.add_argument("--proxy-port", type=int, help="本地 HTTP 代理端口（默认自动探测）")
+    p.add_argument("--no-proxy", action="store_true", help="不注入代理环境变量")
+    p.add_argument("--disable", action="store_true", help="停用开机自启")
+    p.add_argument("--status", action="store_true", help="查看开机自启状态")
+    p.set_defaults(func=cmd_autostart)
 
     p = sub.add_parser("catalog", help="查看或导出工具清单")
     p.add_argument("--markdown", action="store_true", help="输出 Markdown 表格")

@@ -28,6 +28,7 @@
 | `continue` | [Continue CLI](https://continue.dev) | Continue | BYOK（可接免费端点） | cn → 配置 provider | - | npm -g @continuedev/cli | npm -g @continuedev/cli |
 | `codebuff` | [CodeBuff](https://codebuff.com) | CodeBuff | 新用户试用额度 | codebuff → 首次运行自举后登录 | - | npm -g codebuff | npm -g codebuff |
 | `opencode` | [OpenCode](https://opencode.ai/docs) | SST | BYOK / 各家免费 OAuth | opencode → /auth | - | curl -fsSL https://opencode.ai/install \| bash | npm -g opencode-ai |
+| `dsh-free-model` | [dsh Free Model](https://github.com/deepseek-ai/dsh) | DeepSeek Harness | 免费额度按出口 IP 计算，约 4k-5.6k token/次（含 harness 注入），触及 429 将锁定 ~6 小时 | 无需登录，确保本地部署 dsh + dsh-our-free-model 插件 | 需要 | curl -fsSL https://cdn.jsdelivr.net/gh/deepseek-ai/dsh@latest/install.sh \| sh | irm https://cdn.jsdelivr.net/gh/deepseek-ai/dsh@latest/install.ps1 \| iex |
 | `doubao` | [豆包 Seed（火山方舟 + OpenCode）](https://www.volcengine.com/docs/ark) | 字节跳动 / 火山引擎 | 火山方舟新用户免费额度（按模型） | 在 ~/.config/free_agent/ark.env 填 ARK_API_KEY | - | 手动安装 | 手动安装 |
 | `doubao-cli` | [豆包 CLI（官方）](https://www.doubao.com/work/docs/zh-cn/articles/218099810377-cli-quick-start) | 字节跳动 | 需豆包企业账号（个人账号扫码会报 login_required） | doubao-cli login（企业账号扫码） | - | npm -g @bytedance/doubao-cli | npm -g @bytedance/doubao-cli |
 

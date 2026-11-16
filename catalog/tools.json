@@ -368,14 +368,15 @@
       "login": "无需登录，确保本地部署 dsh + dsh-our-free-model 插件",
       "proxy": true,
       "docs": "https://github.com/deepseek-ai/dsh",
+      "run_args": ["web"],
       "install": {
         "default": {
           "type": "script",
           "cmd": "curl -fsSL https://cdn.jsdelivr.net/gh/deepseek-ai/dsh@latest/install.sh | sh"
         },
         "windows": {
-          "type": "script",
-          "cmd": "curl -fsSL https://cdn.jsdelivr.net/gh/deepseek-ai/dsh@latest/install.ps1 | powershell"
+          "type": "pwsh",
+          "cmd": "irm https://cdn.jsdelivr.net/gh/deepseek-ai/dsh@latest/install.ps1 | iex"
         },
         "linux": {
           "type": "script",

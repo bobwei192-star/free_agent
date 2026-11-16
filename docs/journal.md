@@ -1,7 +1,27 @@
 # Free_Agent 进度记录
 
-最后更新：2026-11-14
+最后更新：2026-11-16
 状态：可用（23 个终端 Agent + 6 个 GUI 全部 OK）
+
+## 〇、本轮完成（2026-11-16）：DeepSeek Harness 开机自启
+
+| 事项 | 结果 | 说明 |
+|---|---|---|
+| `fa autostart dsh` | ✅ | 写入 `~/.config/systemd/user/dsh-web.service`，`systemctl --user enable --now`，开机自动起 `dsh web --no-open --port 3080` |
+| linger | ✅ | 自动 `loginctl enable-linger`，不登录桌面也自启 |
+| 代理环境 | ✅ | 自动探测本机 HTTP 代理（本机 7897），写进单元 `Environment=`；`--no-proxy` 可关闭 |
+| 本机验证 | ✅ | `dsh-web.service` active、3080 端口监听、`/` 换 Cookie 后返回 UI；`fa autostart dsh --status` 正常 |
+| 清单修正 | ✅ | `dsh-free-model` 的 Windows 安装方式由 `script` 改为 `pwsh`（`irm ... install.ps1 | iex`），修复 `test_windows_never_falls_back_to_script` 失败 |
+| 启动参数 | ✅ | 清单新增 `run_args`，`fa run dsh-free-model` / `make dsh-free-model` 直接起 web profile |
+
+关键命令：
+
+```bash
+make dsh-autostart         # 装开机自启
+make dsh-autostart-status  # 看状态
+make dsh-autostart-off     # 停用
+journalctl --user -u dsh-web.service -f
+```
 
 ## 一、本轮完成（2026-11-14）
 

@@ -5,7 +5,7 @@ from __future__ import annotations
 import shutil
 import sys
 
-from fa import __version__, installer, platforms, ui
+from fa import __version__, autostart, installer, platforms, ui
 from fa.catalog import Catalog, Tool
 
 
@@ -51,6 +51,22 @@ def run(catalog: Catalog, plat: str, *, net: bool = False, strict: bool = False)
             missing_prereqs.append(name)
             ui.say(f"  {ui.red('✗')} {name:<8} {installer.prereq_hint(catalog, name, plat)}")
     ui.say()
+
+    if plat in ("linux", "wsl") and autostart.systemd_ok():
+        ui.say(ui.bold("开机自启（systemd --user）"))
+        for name in autostart.SERVICES:
+            info = autostart.status(name)
+            if not info["installed"]:
+                ui.say(f"  {ui.yellow('○')} {name:<8} {ui.dim('未配置：fa autostart ' + name)}")
+                continue
+            state = "运行中" if info["active"] else ("已启用" if info["enabled"] else "已停用")
+            color = ui.green if info["active"] else (ui.yellow if info["enabled"] else ui.red)
+            extra = ""
+            if not info["listening"]:
+                extra = ui.dim("  端口未监听")
+            ui.say(f"  {color('✓')} {name:<8} {ui.pad(state, 8)} {ui.dim(info['url'])}{extra}")
+        ui.say(ui.dim(f"  linger：{'已开启' if autostart.linger_enabled() else '未开启（登录后才会自启）'}"))
+        ui.say()
 
     missing_tools: list[str] = []
     manual_tools: list[str] = []

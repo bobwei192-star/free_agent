@@ -79,6 +79,15 @@ class Tool:
     def login_cmd(self) -> str | None:
         return self.raw.get("login_cmd")
 
+    def run_args(self, plat: str) -> list[str]:
+        """默认启动参数：例如 dsh 走 web profile。"""
+        value = _pick(self.raw.get("run_args"), plat, sentinel=[])
+        if isinstance(value, str):
+            return value.split()
+        if isinstance(value, list):
+            return [str(item) for item in value]
+        return []
+
     def update_cmd(self) -> str | None:
         return self.raw.get("update_cmd")
 

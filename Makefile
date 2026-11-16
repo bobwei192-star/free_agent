@@ -12,6 +12,7 @@ CLI_TARGETS := gemini qwen copilot codex claude amp cursor-agent kiro droid \
 GUI_TARGETS := cursor trae qoder-ide workbuddy antigravity vscode
 
 .PHONY: help install install-cli install-ext list status doctor login proxy update test docs clean \
+        dsh-autostart dsh-autostart-status dsh-autostart-off \
         $(CLI_TARGETS) $(GUI_TARGETS)
 
 help:
@@ -52,6 +53,11 @@ help:
 		doubao '豆包 Seed（火山方舟 + OpenCode）' \
 		doubao-cli '豆包 CLI（官方，需企业账号）' \
 		dsh-free-model 'dsh Free Model（DeepSeek Harness 免费 token）'
+	@printf '\n\033[36m开机自启（systemd --user）\n\033[0m\n'
+	@printf '  \033[32mmake %-14s\033[0m%s\n' \
+		dsh-autostart '让 DeepSeek Harness 开机自启（:3080）' \
+		dsh-autostart-status '查看开机自启状态' \
+		dsh-autostart-off '停用开机自启'
 	@printf '\n\033[36m桌面 / GUI\033[0m\n'
 	@printf '  \033[32mmake %-14s\033[0m%s\n' \
 		cursor 'Cursor IDE' \
@@ -89,6 +95,15 @@ proxy:
 
 update:
 	@$(FA) update
+
+dsh-autostart:
+	@$(FA) autostart dsh
+
+dsh-autostart-status:
+	@$(FA) autostart dsh --status
+
+dsh-autostart-off:
+	@$(FA) autostart dsh --disable
 
 test:
 	@python3 -m unittest discover -s tests -v
