@@ -22,6 +22,7 @@
 - [快速开始](#快速开始)
 - [命令详解](#命令详解)
 - [工具清单](#工具清单)
+- [OpenCode 使用指南](#opencode-使用指南)
 - [典型工作流](#典型工作流)
 - [登录指南](#登录指南)
 - [网络与代理](#网络与代理)
@@ -304,6 +305,105 @@ fa list ext             # 查看已装状态
   触及 429 会锁定约 6 小时。`fa run dsh-free-model` 起 Web UI；`fa autostart dsh` 开机自启，见 [专节](#开机自启deepseek-harness-web-ui)。
 - **豆包两条路线**：`doubao` 走火山方舟 API（OpenCode + Ark 包装脚本，在 `~/.config/free_agent/ark.env` 填 `ARK_API_KEY`，
   模型默认 `doubao-seed-2-1-pro-260915`）；`doubao-cli` 是官方 CLI，**需要豆包企业账号**，个人账号扫码会报 `login_required`。
+
+## OpenCode 使用指南
+
+[OpenCode](https://opencode.ai/docs) 是开源终端 AI 编码 Agent，支持 BYOK（自带 Key / 任意 OpenAI 兼容端点）与多家 OAuth 登录，
+也是 `doubao`（火山方舟）路线的底层引擎。
+
+### 安装
+
+官方安装脚本（Linux / WSL / macOS，推荐）：
+
+```bash
+curl -fsSL https://opencode.ai/install | bash
+```
+
+或交给 `fa` 按平台自动选路（执行的就是上面这条命令）：
+
+```bash
+fa install opencode
+fa install opencode --dry-run    # 先预演，只看命令不执行
+```
+
+Windows 走 npm 包（版本可能落后于官方脚本，遇旧版请改用官网安装方式）：
+
+```powershell
+npm install -g opencode-ai
+```
+
+二进制落在 `~/.opencode/bin/opencode`，装完重开终端验证：
+
+```bash
+opencode --version
+fa list opencode
+```
+
+### 启动与基本用法
+
+```bash
+cd 你的项目
+fa run opencode                  # 等价于 opencode，参数原样透传
+opencode                         # 启动 TUI
+opencode run "解释这个仓库的结构"  # 非交互模式，跑完即退出
+```
+
+TUI 常用命令：
+
+| 命令 | 作用 |
+|---|---|
+| `/auth` | 添加 / 登录 provider（OAuth 或 API Key） |
+| `/models` | 切换模型 |
+| `/init` | 生成项目 `AGENTS.md`（给 agent 的项目说明） |
+| `/undo` / `/redo` | 撤销 / 重做上一次改动 |
+| `/compact` | 压缩上下文 |
+| `/help` | 全部命令 |
+
+### 接入模型
+
+两条路线：
+
+1. **OAuth / 免费档**：`/auth` 里选 provider，按提示登录；
+2. **BYOK**：设环境变量（如 `OPENAI_API_KEY`、`ANTHROPIC_API_KEY`），或写配置文件接任意 OpenAI 兼容端点
+   （智谱 GLM、月之暗面 Kimi、火山方舟 Ark、本地 llama-server 等）。
+
+配置文件：项目级 `opencode.json`，全局 `~/.config/opencode/opencode.json`，也可用 `OPENCODE_CONFIG` 环境变量指定。
+自定义端点示例（Key 走环境变量，**不要硬编码进仓库**）：
+
+```json
+{
+  "$schema": "https://opencode.ai/config.json",
+  "provider": {
+    "myprovider": {
+      "npm": "@ai-sdk/openai-compatible",
+      "name": "My Provider",
+      "options": {
+        "baseURL": "https://api.example.com/v1",
+        "apiKey": "{env:MY_API_KEY}"
+      },
+      "models": {
+        "some-model": { "name": "Some Model" }
+      }
+    }
+  }
+}
+```
+
+`doubao` 路线就是这个模式：OpenCode + 火山方舟 Ark 端点，见 [两条特殊路线](#两条特殊路线)。
+
+### 升级
+
+```bash
+opencode upgrade                 # 自带 updater
+fa update opencode               # 等价写法（清单 update_cmd）
+```
+
+### 注意事项
+
+- **两个版本别混用**：npm 的 `opencode-ai` 与官方脚本版同时存在时，会报
+  `Database is not empty and has no session table`。用 `which -a opencode` 检查，
+  只保留官方脚本那份（`~/.opencode/bin/opencode`），删掉旧 npm 包，升级统一走 `opencode upgrade`。
+- 凭据存在 opencode 自己的配置目录，不要写进本仓库。
 
 ## 典型工作流
 
