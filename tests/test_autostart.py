@@ -51,6 +51,43 @@ class AutostartTest(unittest.TestCase):
                 os.environ["HTTPS_PROXY"] = old
 
 
+class UnitPortTest(unittest.TestCase):
+    def test_parse_custom_port(self):
+        text = autostart.render_unit("dsh", port=4000)
+        self.assertEqual(autostart.parse_unit_port(text, 3080), 4000)
+
+    def test_parse_falls_back_to_default(self):
+        self.assertEqual(autostart.parse_unit_port("[Service]\nExecStart=dsh web", 3080), 3080)
+
+    def test_status_uses_configured_port(self):
+        import tempfile
+        from pathlib import Path
+        from unittest import mock
+
+        with tempfile.TemporaryDirectory() as tmp:
+            unit = Path(tmp) / "dsh-web.service"
+            unit.write_text(autostart.render_unit("dsh", port=4000), encoding="utf-8")
+            with mock.patch.object(autostart, "unit_file", return_value=unit), \
+                    mock.patch.object(autostart, "systemd_ok", return_value=False), \
+                    mock.patch.object(autostart, "linger_enabled", return_value=False):
+                info = autostart.status("dsh")
+        self.assertEqual(info["port"], 4000)
+        self.assertEqual(info["url"], "http://127.0.0.1:4000/")
+        self.assertTrue(info["installed"])
+
+    def test_status_without_unit_file_uses_default(self):
+        from pathlib import Path
+        from unittest import mock
+
+        missing = Path("/nonexistent-free-agent-test/dsh-web.service")
+        with mock.patch.object(autostart, "unit_file", return_value=missing), \
+                mock.patch.object(autostart, "systemd_ok", return_value=False), \
+                mock.patch.object(autostart, "linger_enabled", return_value=False):
+            info = autostart.status("dsh")
+        self.assertEqual(info["port"], 3080)
+        self.assertFalse(info["installed"])
+
+
 class RunArgsTest(unittest.TestCase):
     @classmethod
     def setUpClass(cls):

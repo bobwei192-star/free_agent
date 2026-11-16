@@ -1,9 +1,19 @@
 # Free_Agent 进度记录
 
 最后更新：2026-11-16
-状态：可用（23 个终端 Agent + 6 个 GUI 全部 OK）
+状态：可用（24 个终端 Agent + 6 个 GUI + 15 个扩展，共 45 个全部 OK）
 
-## 〇、本轮完成（2026-11-16）：DeepSeek Harness 开机自启
+## 〇、本轮完成（2026-11-16）：README 完整使用指南 + 自启端口修复
+
+| 事项 | 结果 | 说明 |
+|---|---|---|
+| README 重写 | ✅ | 扩成完整使用指南：全部命令详解与示例、典型工作流、登录 / 代理 / 自启 / 自定义清单 / 开发 / FAQ |
+| 自启自定义端口修复 | ✅ | `fa autostart dsh --port 4000` 后，`--status` / `fa doctor` / `fa run` 现在从单元文件读实际端口，不再固定按 3080 判断 |
+| 新增测试 | ✅ | `parse_unit_port` 与 `status()` 端口解析共 4 例，全套 30 个测试通过 |
+| CI 增强 | ✅ | Ubuntu 矩阵增加「清单文档同步」检查：`fa catalog --markdown` 与 `docs/catalog.md` diff |
+| 数量口径修正 | ✅ | 终端 Agent 23 → 24（含 `dsh-free-model`），总数 45 |
+
+## 〇-上一轮（2026-11-16）：DeepSeek Harness 开机自启
 
 | 事项 | 结果 | 说明 |
 |---|---|---|
@@ -59,7 +69,7 @@ make list             # 看全部版本 / 是否已装
 
 ## 二、当前安装清单
 
-### 终端 Agent（22 个，全部 OK）
+### 终端 Agent（24 个，全部 OK）
 
 ```
 gemini 0.68.0        qwen 0.27.3          copilot 1.0.111.
@@ -70,6 +80,7 @@ iflow 0.5.19         agy 1.5.8            vibe 3.1.2
 kimi 1.52.0          aider 0.86.2         crush 0.101.0
 cline 3.0.74         continue 1.5.47      codebuff 1.0.688
 opencode 2.3.0       doubao（Ark）       doubao-cli 2.36.2
+dsh 0.2.2-rc.1（DeepSeek Harness，web UI 开机自启 :3080）
 ```
 
 ### 桌面 / GUI（6 个，全部 OK）

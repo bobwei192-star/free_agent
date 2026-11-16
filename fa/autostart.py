@@ -8,6 +8,7 @@
 from __future__ import annotations
 
 import os
+import re
 import shutil
 import subprocess
 from pathlib import Path
@@ -171,16 +172,25 @@ def disable(name: str) -> tuple[bool, str]:
     return True, SERVICES[name]["unit"]
 
 
+def parse_unit_port(text: str, default: int) -> int:
+    match = re.search(r"--port\s+(\d+)", text)
+    return int(match.group(1)) if match else default
+
+
 def status(name: str) -> dict:
     spec = SERVICES[name]
+    path = unit_file(name)
+    port = spec["port"]
+    if path.is_file():
+        port = parse_unit_port(path.read_text(encoding="utf-8"), port)
     info: dict = {
         "name": name,
         "title": spec["title"],
         "unit": spec["unit"],
-        "port": spec["port"],
-        "url": f"http://127.0.0.1:{spec['port']}/",
-        "unit_file": str(unit_file(name)),
-        "installed": unit_file(name).exists(),
+        "port": port,
+        "url": f"http://127.0.0.1:{port}/",
+        "unit_file": str(path),
+        "installed": path.is_file(),
         "enabled": False,
         "active": False,
         "listening": False,
@@ -190,5 +200,5 @@ def status(name: str) -> dict:
         return info
     info["enabled"] = "enabled" in (systemctl("is-enabled", spec["unit"]).stdout or "")
     info["active"] = (systemctl("is-active", spec["unit"]).stdout or "").strip() == "active"
-    info["listening"] = platforms.port_open("127.0.0.1", spec["port"], timeout=1.5)
+    info["listening"] = platforms.port_open("127.0.0.1", port, timeout=1.5)
     return info

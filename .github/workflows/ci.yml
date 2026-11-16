@@ -25,3 +25,8 @@ jobs:
         run: python -m unittest discover -s tests -v
       - name: Smoke test
         run: python -m fa list --fast
+      - name: Catalog docs in sync
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          python -m fa catalog --markdown > /tmp/catalog.md
+          diff -u docs/catalog.md /tmp/catalog.md
