@@ -103,6 +103,21 @@ fa info workbuddy
 
 个别工具 `--version` 输出的是横幅而不是版本号，`fa` 会退化为显示第一行文本，不影响使用。
 
+## EAC 模型报 `AUTHORIZATION_REQUIRED`，且找不到「EAC 渠道授权」入口
+
+dsh 某些 Web 版本（实测 `0.2.2-rc.1`）只挂载 `dsh-our-free-model` 的服务端半区，插件十一页面板所在的
+`settings.section` 客户端半区没被加载，所以设置里没有「Our Free Model」，README 指的授权区块无处可点。
+授权流程本身可用，直接走插件自己的同源接口：
+
+```bash
+fa eac                 # 看状态：车道可用 / 需要授权 / 已授权 / 已 star
+fa eac --login         # 发起 GitHub 登录并等待自动确认
+fa eac --collect LINK  # 上一轮 15 分钟内没领到，凭 link 补领
+```
+
+浏览器里用 GitHub 登录并 star `Ebony-Vinyl/dsh-our-free-model` 即完成授权；`*-free` 免费模型不受此问题影响。
+根因与手工兜底见 [EAC 授权](eac-auth.md)。
+
 ## 清单改坏了 / JSON 解析失败
 
 ```bash

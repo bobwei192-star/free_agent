@@ -3,6 +3,16 @@
 最后更新：2026-11-16
 状态：可用（24 个终端 Agent + 6 个 GUI + 15 个扩展，共 45 个全部 OK）
 
+## 〇-本轮（2026-11-16）：EAC 授权入口缺失的根因与 `fa eac`
+
+| 事项 | 结果 | 说明 |
+|---|---|---|
+| 根因定位 | ✅ | dsh `0.2.2-rc.1` Web 宿主只加载 `dsh-our-free-model` 的服务端半区：页面请求的 `/plugins/??…` 合并包里没有第三方 `client.js`，`GET /plugins/dsh-our-free-model/client.js` → `404`，插件注入的 `settings.section`（`id: our-free-model`、`order: 35`）没有挂载点，设置左栏因此只有 `通用设置 / 模型 / 内置插件 / Agent 预设` 四项，README 说的「EAC 渠道授权」区块无处可点 |
+| 服务端可用确认 | ✅ | 同源 `/api/our-free-model/eac/status` 正常返回 `available:true / required:true / authorized:false / starred:false / repo:Ebony-Vinyl/dsh-our-free-model` |
+| `fa eac` 新子命令 | ✅ | `fa/eac_auth.py`：`?token=` 换 30 天 Cookie（journal → `~/.dsh/logs/startup-*.log` → `DSH_WEB_TOKEN`）→ `POST /eac/login/start` → `GET /eac/login/poll?link=`；令牌由插件服务端写 `~/.dsh/our-free-model/eac-user.json`，命令行不经手凭据 |
+| 文档 | ✅ | 新增 [docs/eac-auth.md](eac-auth.md)（根因、命令路径、浏览器控制台手工兜底、状态码对照），并补排错手册与 README（命令详解 / FAQ / 文档索引） |
+| 新增测试 | ✅ | `tests/test_eac_auth.py` 共 11 例（令牌提取、状态渲染、请求形状、CLI 解析、轮询终止），全套 41 例通过 |
+
 ## 〇、本轮完成（2026-11-16）：README 完整使用指南 + 自启端口修复
 
 | 事项 | 结果 | 说明 |

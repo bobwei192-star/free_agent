@@ -44,7 +44,7 @@
 - **白嫖信息内置**：每个工具的免费额度、登录方式、是否需要代理都写在清单里，`fa info` 直接查。
 - **开机自启**：`fa autostart dsh` 把 DeepSeek Harness Web UI 注册成 systemd 用户服务，不登录桌面也能开机自启。
 - **纯标准库**：CLI 只依赖 Python 3.9+，没有第三方包；`pipx` / `uv tool` 也能装。
-- **有测试有 CI**：30 个离线单元测试，GitHub Actions 在 Ubuntu + Windows × Python 3.9/3.12 上跑，并校验清单文档同步。
+- **有测试有 CI**：41 个离线单元测试，GitHub Actions 在 Ubuntu + Windows × Python 3.9/3.12 上跑，并校验清单文档同步。
 
 ## 平台支持
 
@@ -240,6 +240,22 @@ fa autostart dsh --no-proxy     # 不注入代理环境变量（直连）
 ```
 
 服务名可用别名 `dsh-web` / `harness`。仅支持 Linux / WSL（systemd --user）。完整说明见 [开机自启](#开机自启deepseek-harness-web-ui)。
+
+### fa eac —— EAC 协付车道授权
+
+```bash
+fa eac                       # 状态：车道可用 / 需要授权 / 已授权 / 已 star / 目标仓库
+fa eac --login               # 发起 GitHub 登录，打印链接并打开浏览器，自动确认
+fa eac --login --no-open     # 只打印链接，自己复制去浏览器打开
+fa eac --collect LINK        # 15 分钟领取窗口内补领上一轮登录的授权
+fa eac --json                # 原始状态 JSON
+fa eac --port 3080 --token XXX   # 手动指定 dsh 端口 / 首访问令牌
+```
+
+EAC 分组模型（`EAC GLM 5.3 Flash` 等）要求「GitHub 登录 + star 仓库」，未授权时会话直接以
+`AUTHORIZATION_REQUIRED` 失败。dsh 某些 Web 版本不挂载插件的设置面板，界面上找不到授权入口，
+这条命令走插件自己的同源接口把流程做完。`*-free` 免费模型不受影响。
+原理与手工兜底见 [EAC 授权](docs/eac-auth.md)。
 
 ### fa catalog —— 清单查看 / 导出
 
@@ -603,12 +619,13 @@ Free_Agent/
 │   ├── installer.py       #   命令拼装与执行、升级
 │   ├── doctor.py          #   体检
 │   ├── autostart.py       #   systemd --user 开机自启（dsh web）
+│   ├── eac_auth.py        #   EAC 车道授权：dsh 同源 API 客户端（GitHub 登录 + star）
 │   ├── platforms.py       #   平台探测、命令执行、网络探测
 │   └── ui.py              #   颜色与中日韩宽字符对齐表格
 ├── fa.sh                  # POSIX 启动器（被 install.sh 链接为 fa）
 ├── install.sh             # Linux / WSL / macOS 安装器
 ├── install.ps1            # Windows PowerShell 安装器
-├── tests/                 # 30 个单元测试（不联网、不写系统目录）
+├── tests/                 # 41 个单元测试（不联网、不写系统目录）
 ├── docs/                  # 平台说明、网络、排错、清单（自动生成）、进度日志
 ├── .github/workflows/     # CI：Ubuntu + Windows × Python 3.9/3.12
 ├── Makefile               # make 便捷入口（fa 的封装）
@@ -649,6 +666,9 @@ Windows 新开一个 PowerShell。临时绕过：`./fa.sh list` / `python -m fa 
 
 **登录 / OAuth 卡住超时** —— 先 `fa doctor --net` 确认域名可达性，再按 `fa proxy` 设代理重试。
 
+**EAC 模型报 `AUTHORIZATION_REQUIRED`** —— 需要 GitHub 登录 + star；界面里找不到授权入口时直接
+`fa eac --login`（详见 [EAC 授权](docs/eac-auth.md)）。`*-free` 模型不需要授权，可先用它们。
+
 **`fa install all` 有「需手动」条目** —— GUI 与部分国内 CLI 只提供官网安装包，属预期；`fa info <id>` 看地址。
 
 **opencode 报 `Database is not empty…`** —— 新旧版本混用；`which -a opencode` 只保留官方脚本那份，升级用 `opencode upgrade`。
@@ -661,6 +681,7 @@ Windows 新开一个 PowerShell。临时绕过：`./fa.sh list` / `python -m fa 
 - [工具清单](docs/catalog.md) —— 全部 45 个工具的免费额度 / 登录 / 安装方式（自动生成）
 - [网络与账号](docs/network.md) —— 直连 / 代理域名表、代理用法、注册优先级
 - [排错手册](docs/troubleshooting.md) —— 常见报错与处理
+- [EAC 授权](docs/eac-auth.md) —— EAC 协付车道为什么授权不上、入口找不到时怎么办
 - [进度日志](docs/journal.md) —— 每轮改动记录与本机安装快照
 
 ## 说明与免责

@@ -8,7 +8,7 @@ import os
 import shlex
 import sys
 
-from fa import __version__, autostart, doctor, installer, platforms, ui
+from fa import __version__, autostart, doctor, eac_auth, installer, platforms, ui
 from fa.catalog import Catalog, CatalogError, Tool, load
 
 EPILOG = """示例：
@@ -20,6 +20,7 @@ EPILOG = """示例：
   fa login codex              执行某家的登录流程
   fa update                   升级已安装的终端 Agent
   fa autostart dsh            让 DeepSeek Harness 开机自启（systemd --user）
+  fa eac --login              完成 EAC 协付车道的 GitHub 授权（登录 + star）
   fa catalog --markdown       生成工具清单文档
 """
 
@@ -338,6 +339,70 @@ def cmd_autostart(args, catalog: Catalog, plat: str) -> int:
     return 0
 
 
+# --------------------------------------------------------------------- eac 授权
+def cmd_eac(args, catalog: Catalog, plat: str) -> int:
+    try:
+        client = eac_auth.connect(args.port, args.token)
+        if args.collect:
+            ui.say(ui.dim(f"领取授权（link={ui.truncate(args.collect, 20)}），最长等 {args.timeout:g} 秒……"))
+            outcome = eac_auth.wait(client, args.collect, args.timeout)
+        elif args.login:
+            started = eac_auth.start_login(client)
+            link = str(started.get("link") or "")
+            url = str(started.get("url") or "")
+            if not link:
+                ui.error(f"插件没返回授权链接：{started}")
+                return 1
+            ui.say(ui.bold("授权链接：") + ui.cyan(url))
+            ui.say(ui.dim(f"link={ui.truncate(link, 24)}  仓库={eac_auth.DEFAULT_REPO}"))
+            if started.get("opened") is not True and not args.no_open:
+                import webbrowser
+
+                webbrowser.open(url)
+            ui.say()
+            ui.say(ui.dim(f"浏览器里登录 GitHub 并 star 仓库后自动确认，最长等 {args.timeout:g} 秒……"))
+            ui.say(ui.dim("没赶上这一轮也别重开登录：稍后用 `fa eac --collect " + link + "` 领取。"))
+            outcome = eac_auth.wait(client, link, args.timeout)
+        else:
+            outcome = eac_auth.status(client)
+    except eac_auth.EacError as exc:
+        ui.error(str(exc))
+        return 1
+
+    if args.json:
+        print(json.dumps(outcome, ensure_ascii=False, indent=2))
+        return 0
+
+    state = str(outcome.get("status") or "")
+    if state == "ok":
+        ui.ok(f"授权成功：@{outcome.get('login', '')}")
+        return 0
+    if state == "unstarred":
+        ui.warn(f"已登录 @{outcome.get('login', '')}，但还没 star 仓库；star 后重新执行 `fa eac --collect <link>`")
+        return 1
+    if state == "expired":
+        ui.warn("这次登录已过期，重新执行 `fa eac --login`")
+        return 1
+    if "error" in outcome:
+        ui.error(f"授权未完成：{outcome['error']}")
+        return 1
+    if state == "pending":
+        ui.warn("仍在等待你在浏览器里完成 GitHub 登录 + star")
+        return 1
+
+    rows = eac_auth.describe(outcome)
+    width = max(ui.visible_width(label) for label, _ in rows)
+    for label, value in rows:
+        ui.say(f"  {ui.dim(ui.pad(label, width))}  {value}")
+    if outcome.get("authorized") is True:
+        ui.say()
+        ui.ok("EAC 车道已解锁，可以直接选 EAC 模型")
+    elif outcome.get("required") is True:
+        ui.say()
+        ui.warn("EAC 模型需要 GitHub 登录 + star；执行 `fa eac --login` 完成授权（免费车道不受影响）")
+    return 0 if outcome.get("authorized") is True else 1
+
+
 # --------------------------------------------------------------------- catalog
 def _escape_cell(text: str) -> str:
     return str(text).replace("|", "\\|").replace("\n", " ")
@@ -466,6 +531,16 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--disable", action="store_true", help="停用开机自启")
     p.add_argument("--status", action="store_true", help="查看开机自启状态")
     p.set_defaults(func=cmd_autostart)
+
+    p = sub.add_parser("eac", help="EAC 协付车道：查看/完成 GitHub 授权")
+    p.add_argument("--login", action="store_true", help="发起 GitHub 登录并等待授权完成")
+    p.add_argument("--collect", metavar="LINK", help="领取此前一次登录的授权（link）")
+    p.add_argument("--timeout", type=float, default=240, help="等待秒数（默认 240）")
+    p.add_argument("--no-open", action="store_true", help="不自动打开浏览器")
+    p.add_argument("--port", type=int, help="dsh Web UI 端口（默认读单元文件，回落 3080）")
+    p.add_argument("--token", help="访问令牌（默认从 journal / ~/.dsh/logs 里找）")
+    p.add_argument("--json", action="store_true", help="输出原始 JSON 状态")
+    p.set_defaults(func=cmd_eac)
 
     p = sub.add_parser("catalog", help="查看或导出工具清单")
     p.add_argument("--markdown", action="store_true", help="输出 Markdown 表格")
