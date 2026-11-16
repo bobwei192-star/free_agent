@@ -1,0 +1,685 @@
+{
+  "schema": 1,
+  "name": "Free_Agent",
+  "updated": "2026-11-14",
+  "groups": {
+    "cli": { "title": "终端 Agent" },
+    "gui": { "title": "桌面 IDE / GUI" },
+    "ext": { "title": "编辑器扩展" }
+  },
+  "prereqs": {
+    "npm": {
+      "label": "Node.js + npm",
+      "check": "npm",
+      "hint": {
+        "default": "安装 Node.js 18+（https://nodejs.org）",
+        "linux": "sudo apt install nodejs npm   # 或使用 nvm",
+        "wsl": "sudo apt install nodejs npm   # 或使用 nvm",
+        "macos": "brew install node",
+        "windows": "winget install OpenJS.NodeJS.LTS"
+      }
+    },
+    "uv": {
+      "label": "uv（Python 工具管理器）",
+      "check": "uv",
+      "hint": {
+        "default": "curl -LsSf https://astral.sh/uv/install.sh | sh",
+        "windows": "powershell -ExecutionPolicy ByPass -c \"irm https://astral.sh/uv/install.ps1 | iex\""
+      }
+    },
+    "pipx": {
+      "label": "pipx",
+      "check": "pipx",
+      "hint": {
+        "default": "python3 -m pip install --user pipx && python3 -m pipx ensurepath",
+        "windows": "py -3 -m pip install --user pipx"
+      }
+    },
+    "vscode": {
+      "label": "VS Code CLI（code）",
+      "check": "code",
+      "hint": {
+        "default": "安装 VS Code 并在 PATH 中启用 code 命令",
+        "windows": "winget install Microsoft.VisualStudioCode"
+      }
+    },
+    "winget": {
+      "label": "winget（Windows 包管理器）",
+      "check": "winget",
+      "hint": {
+        "default": "Windows 10 1809+ 自带；在 Microsoft Store 更新“应用安装程序”",
+        "windows": "在 Microsoft Store 更新“应用安装程序”"
+      }
+    },
+    "bash": {
+      "label": "bash + curl",
+      "check": "bash",
+      "hint": {
+        "default": "需要 bash 与 curl 执行官方安装脚本",
+        "windows": "建议使用 WSL：wsl --install"
+      }
+    }
+  },
+  "network": [
+    { "label": "Qwen Code", "host": "qwen.ai", "proxy": false },
+    { "label": "心流 iFlow", "host": "iflow.cn", "proxy": false },
+    { "label": "Kimi", "host": "api.moonshot.cn", "proxy": false },
+    { "label": "Amp", "host": "ampcode.com", "proxy": false },
+    { "label": "Factory Droid", "host": "app.factory.ai", "proxy": false },
+    { "label": "Qoder", "host": "qoder.com", "proxy": false },
+    { "label": "TRAE CN", "host": "www.trae.com.cn", "proxy": false },
+    { "label": "豆包", "host": "www.doubao.com", "proxy": false },
+    { "label": "火山方舟 Ark", "host": "ark.cn-beijing.volces.com", "proxy": false },
+    { "label": "智谱 GLM", "host": "open.bigmodel.cn", "proxy": false },
+    { "label": "WorkBuddy", "host": "www.workbuddy.cn", "proxy": false },
+    { "label": "GitHub API", "host": "api.github.com", "proxy": false },
+    { "label": "Google 账号", "host": "accounts.google.com", "proxy": true },
+    { "label": "Gemini API", "host": "generativelanguage.googleapis.com", "proxy": true },
+    { "label": "OpenAI", "host": "api.openai.com", "proxy": true },
+    { "label": "Anthropic", "host": "api.anthropic.com", "proxy": true },
+    { "label": "Mistral", "host": "api.mistral.ai", "proxy": true },
+    { "label": "Kiro", "host": "console.kiro.dev", "proxy": true },
+    { "label": "Cursor 登录", "host": "auth.cursor.com", "proxy": true }
+  ],
+  "tools": [
+    {
+      "id": "gemini",
+      "name": "Gemini CLI",
+      "vendor": "Google",
+      "kind": "cli",
+      "bins": "gemini",
+      "free": "个人 Google 账号免费档（约 60 次/分、1000 次/天）",
+      "login": "gemini → 选 Google 登录",
+      "proxy": true,
+      "docs": "https://github.com/google-gemini/gemini-cli",
+      "install": { "default": { "type": "npm", "pkg": "@google/gemini-cli" } }
+    },
+    {
+      "id": "qwen",
+      "name": "Qwen Code",
+      "vendor": "阿里",
+      "kind": "cli",
+      "bins": "qwen",
+      "free": "Qwen OAuth 免费（约 1000–2000 次/天）",
+      "login": "qwen → /auth 选 Qwen OAuth",
+      "proxy": false,
+      "docs": "https://github.com/QwenLM/qwen-code",
+      "install": { "default": { "type": "npm", "pkg": "@qwen-code/qwen-code" } }
+    },
+    {
+      "id": "copilot",
+      "name": "GitHub Copilot CLI",
+      "vendor": "GitHub",
+      "kind": "cli",
+      "bins": "copilot",
+      "free": "Copilot Free：2000 补全 + 50 chat/月",
+      "login": "copilot login",
+      "login_cmd": "copilot login",
+      "proxy": true,
+      "docs": "https://docs.github.com/copilot",
+      "install": { "default": { "type": "npm", "pkg": "@github/copilot" } }
+    },
+    {
+      "id": "codex",
+      "name": "OpenAI Codex CLI",
+      "vendor": "OpenAI",
+      "kind": "cli",
+      "bins": "codex",
+      "free": "ChatGPT 账号内置额度（免费档少量）",
+      "login": "codex login",
+      "login_cmd": "codex login",
+      "proxy": true,
+      "docs": "https://github.com/openai/codex",
+      "install": { "default": { "type": "npm", "pkg": "@openai/codex" } }
+    },
+    {
+      "id": "claude",
+      "name": "Claude Code",
+      "vendor": "Anthropic",
+      "kind": "cli",
+      "bins": "claude",
+      "free": "无免费档：需 Pro/Max 订阅或 API Key",
+      "login": "claude → /login",
+      "proxy": true,
+      "docs": "https://docs.anthropic.com/en/docs/claude-code",
+      "install": { "default": { "type": "npm", "pkg": "@anthropic-ai/claude-code" } }
+    },
+    {
+      "id": "amp",
+      "name": "Sourcegraph Amp",
+      "vendor": "Sourcegraph",
+      "kind": "cli",
+      "bins": "amp",
+      "free": "免费档（有限流）",
+      "login": "amp login",
+      "login_cmd": "amp login",
+      "proxy": false,
+      "docs": "https://ampcode.com",
+      "install": { "default": { "type": "npm", "pkg": "@sourcegraph/amp" } }
+    },
+    {
+      "id": "cursor-agent",
+      "name": "Cursor Agent CLI",
+      "vendor": "Cursor",
+      "kind": "cli",
+      "bins": "agent",
+      "free": "Cursor 免费档 + Agent CLI 额度，新用户有试用",
+      "login": "agent login",
+      "login_cmd": "agent login",
+      "proxy": true,
+      "docs": "https://cursor.com/cli",
+      "update_cmd": "agent update",
+      "install": {
+        "default": { "type": "script", "cmd": "curl https://cursor.com/install -fsS | bash" },
+        "windows": { "type": "manual", "url": "https://cursor.com/cli", "note": "Windows 请使用官方安装器，或在 WSL 中安装" }
+      }
+    },
+    {
+      "id": "kiro",
+      "name": "Kiro CLI",
+      "vendor": "AWS",
+      "kind": "cli",
+      "bins": "kiro-cli",
+      "free": "Builder ID 免费档（每月少量 credits）",
+      "login": "kiro-cli login",
+      "login_cmd": "kiro-cli login",
+      "proxy": true,
+      "docs": "https://kiro.dev/docs/cli/",
+      "install": {
+        "default": { "type": "script", "cmd": "curl -fsSL https://cli.kiro.dev/install | bash" },
+        "windows": { "type": "manual", "url": "https://kiro.dev/docs/cli/", "note": "Windows 建议在 WSL 中安装，或使用官方安装器" }
+      }
+    },
+    {
+      "id": "droid",
+      "name": "Factory Droid",
+      "vendor": "Factory",
+      "kind": "cli",
+      "bins": "droid",
+      "free": "注册送免费 token 额度",
+      "login": "droid → 按提示登录",
+      "proxy": false,
+      "docs": "https://app.factory.ai",
+      "update_cmd": "droid update",
+      "install": {
+        "default": { "type": "script", "cmd": "curl -fsSL https://app.factory.ai/cli | sh" },
+        "windows": { "type": "manual", "url": "https://app.factory.ai", "note": "Windows 建议在 WSL 中安装" }
+      }
+    },
+    {
+      "id": "codebuddy",
+      "name": "腾讯 CodeBuddy",
+      "vendor": "腾讯",
+      "kind": "cli",
+      "bins": "codebuddy",
+      "free": "个人免费额度",
+      "login": "codebuddy → 按提示登录",
+      "proxy": false,
+      "docs": "https://copilot.tencent.com",
+      "install": { "default": { "type": "npm", "pkg": "@tencent-ai/codebuddy-code" } }
+    },
+    {
+      "id": "qoder",
+      "name": "Qoder CLI",
+      "vendor": "阿里",
+      "kind": "cli",
+      "bins": "qodercli",
+      "free": "注册送 credits",
+      "login": "qodercli login",
+      "login_cmd": "qodercli login",
+      "proxy": false,
+      "docs": "https://qoder.com",
+      "install": { "default": { "type": "npm", "pkg": "@qoder-ai/qodercli" } }
+    },
+    {
+      "id": "iflow",
+      "name": "心流 iFlow",
+      "vendor": "iFlow",
+      "kind": "cli",
+      "bins": "iflow",
+      "free": "免费（含国内模型）",
+      "login": "iflow → 按提示登录",
+      "proxy": false,
+      "docs": "https://iflow.cn",
+      "install": { "default": { "type": "npm", "pkg": "@iflow-ai/iflow-cli" } }
+    },
+    {
+      "id": "agy",
+      "name": "Antigravity CLI",
+      "vendor": "Google",
+      "kind": "cli",
+      "bins": "agy",
+      "free": "Google 账号免费档（Gemini 3 Pro 等）",
+      "login": "agy → 按提示登录",
+      "proxy": true,
+      "docs": "https://antigravity.google/docs",
+      "update_cmd": "agy update",
+      "install": {
+        "default": { "type": "manual", "url": "https://antigravity.google/docs", "note": "CLI 随 Antigravity 安装包提供，详见官网" }
+      }
+    },
+    {
+      "id": "vibe",
+      "name": "Mistral Vibe",
+      "vendor": "Mistral",
+      "kind": "cli",
+      "bins": "vibe",
+      "free": "Le Chat / Mistral API 免费额度",
+      "login": "配置 MISTRAL_API_KEY",
+      "proxy": true,
+      "docs": "https://docs.mistral.ai",
+      "install": { "default": { "type": "uv", "pkg": "mistral-vibe" } }
+    },
+    {
+      "id": "kimi",
+      "name": "Kimi CLI",
+      "vendor": "月之暗面",
+      "kind": "cli",
+      "bins": "kimi",
+      "free": "需 Kimi API / 编程套餐",
+      "login": "kimi → 配置 API Key",
+      "proxy": false,
+      "docs": "https://platform.moonshot.cn",
+      "install": { "default": { "type": "uv", "pkg": "kimi-cli" } }
+    },
+    {
+      "id": "aider",
+      "name": "Aider",
+      "vendor": "Aider",
+      "kind": "cli",
+      "bins": "aider",
+      "free": "BYOK：可接各家免费/低价端点",
+      "login": "设 ANTHROPIC_API_KEY / OPENAI_API_KEY 等",
+      "proxy": false,
+      "docs": "https://aider.chat",
+      "install": { "default": { "type": "uv", "pkg": "aider-chat" } }
+    },
+    {
+      "id": "crush",
+      "name": "Charm Crush",
+      "vendor": "Charm",
+      "kind": "cli",
+      "bins": "crush",
+      "free": "自带若干免费/试用 provider",
+      "login": "crush → /models 选 provider",
+      "proxy": false,
+      "docs": "https://github.com/charmbracelet/crush",
+      "install": { "default": { "type": "npm", "pkg": "@charmland/crush" } }
+    },
+    {
+      "id": "cline",
+      "name": "Cline CLI",
+      "vendor": "Cline",
+      "kind": "cli",
+      "bins": "cline",
+      "free": "可选免费 provider / BYOK",
+      "login": "cline → 配置 provider",
+      "proxy": false,
+      "docs": "https://cline.bot",
+      "install": { "default": { "type": "npm", "pkg": "cline" } }
+    },
+    {
+      "id": "continue",
+      "name": "Continue CLI",
+      "vendor": "Continue",
+      "kind": "cli",
+      "bins": "cn",
+      "free": "BYOK（可接免费端点）",
+      "login": "cn → 配置 provider",
+      "proxy": false,
+      "docs": "https://continue.dev",
+      "install": { "default": { "type": "npm", "pkg": "@continuedev/cli" } }
+    },
+    {
+      "id": "codebuff",
+      "name": "CodeBuff",
+      "vendor": "CodeBuff",
+      "kind": "cli",
+      "bins": "codebuff",
+      "free": "新用户试用额度",
+      "login": "codebuff → 首次运行自举后登录",
+      "proxy": false,
+      "docs": "https://codebuff.com",
+      "install": { "default": { "type": "npm", "pkg": "codebuff" } }
+    },
+    {
+      "id": "opencode",
+      "name": "OpenCode",
+      "vendor": "SST",
+      "kind": "cli",
+      "bins": "opencode",
+      "free": "BYOK / 各家免费 OAuth",
+      "login": "opencode → /auth",
+      "proxy": false,
+      "docs": "https://opencode.ai/docs",
+      "update_cmd": "opencode upgrade",
+      "install": {
+        "default": { "type": "script", "cmd": "curl -fsSL https://opencode.ai/install | bash" },
+        "windows": { "type": "npm", "pkg": "opencode-ai", "note": "npm 包可能落后于官方脚本；如遇旧版请使用官网安装方式" }
+      }
+    },
+    {
+      "id": "dsh-free-model",
+      "name": "dsh Free Model",
+      "vendor": "DeepSeek Harness",
+      "kind": "cli",
+      "bins": "dsh",
+      "free": "免费额度按出口 IP 计算，约 4k-5.6k token/次（含 harness 注入），触及 429 将锁定 ~6 小时",
+      "login": "无需登录，确保本地部署 dsh + dsh-our-free-model 插件",
+      "proxy": true,
+      "docs": "https://github.com/deepseek-ai/dsh",
+      "install": {
+        "default": {
+          "type": "script",
+          "cmd": "curl -fsSL https://cdn.jsdelivr.net/gh/deepseek-ai/dsh@latest/install.sh | sh"
+        },
+        "windows": {
+          "type": "script",
+          "cmd": "curl -fsSL https://cdn.jsdelivr.net/gh/deepseek-ai/dsh@latest/install.ps1 | powershell"
+        },
+        "linux": {
+          "type": "script",
+          "cmd": "curl -fsSL https://cdn.jsdelivr.net/gh/deepseek-ai/dsh@latest/install.sh | sh"
+        },
+        "wsl": {
+          "type": "script",
+          "cmd": "curl -fsSL https://cdn.jsdelivr.net/gh/deepseek-ai/dsh@latest/install.sh | sh"
+        }
+      }
+    },
+    {
+      "id": "doubao",
+      "name": "豆包 Seed（火山方舟 + OpenCode）",
+      "vendor": "字节跳动 / 火山引擎",
+      "kind": "cli",
+      "bins": "doubao",
+      "free": "火山方舟新用户免费额度（按模型）",
+      "login": "在 ~/.config/free_agent/ark.env 填 ARK_API_KEY",
+      "proxy": false,
+      "docs": "https://www.volcengine.com/docs/ark",
+      "install": {
+        "default": { "type": "manual", "url": "https://console.volcengine.com/ark", "note": "本机已装包装脚本 ~/.local/bin/doubao（OpenCode + Ark），填入 ARK_API_KEY 后可用；模型默认 doubao-seed-2-1-pro-260915" }
+      }
+    },
+    {
+      "id": "doubao-cli",
+      "name": "豆包 CLI（官方）",
+      "vendor": "字节跳动",
+      "kind": "cli",
+      "bins": "doubao-cli",
+      "free": "需豆包企业账号（个人账号扫码会报 login_required）",
+      "login": "doubao-cli login（企业账号扫码）",
+      "login_cmd": "doubao-cli login",
+      "proxy": false,
+      "docs": "https://www.doubao.com/work/docs/zh-cn/articles/218099810377-cli-quick-start",
+      "update_cmd": "doubao-cli update",
+      "install": { "default": { "type": "npm", "pkg": "@bytedance/doubao-cli" } }
+    },
+    {
+      "id": "cursor",
+      "name": "Cursor IDE",
+      "vendor": "Cursor",
+      "kind": "gui",
+      "bins": "cursor",
+      "free": "免费档 + 新用户试用",
+      "login": "应用内登录",
+      "proxy": true,
+      "docs": "https://www.cursor.com/downloads",
+      "install": {
+        "default": { "type": "manual", "url": "https://www.cursor.com/downloads", "note": "下载 .deb / AppImage；无 root 时可解包到 ~/.local/opt" },
+        "windows": { "type": "winget", "id": "Anysphere.Cursor" }
+      }
+    },
+    {
+      "id": "trae",
+      "name": "TRAE CN",
+      "vendor": "字节跳动",
+      "kind": "gui",
+      "bins": { "default": "trae-cn", "windows": null },
+      "free": "注册送 credits",
+      "login": "手机号 / 微信扫码",
+      "proxy": false,
+      "docs": "https://www.trae.com.cn/download",
+      "install": {
+        "default": { "type": "manual", "url": "https://www.trae.com.cn/download", "note": "x86_64 用官方 tar.gz；arm64 包在 x64 机器上不可用" }
+      }
+    },
+    {
+      "id": "qoder-ide",
+      "name": "Qoder CN IDE",
+      "vendor": "阿里",
+      "kind": "gui",
+      "bins": { "default": "qoder-cn", "windows": null },
+      "free": "注册送 credits",
+      "login": "手机号 / 扫码",
+      "proxy": false,
+      "docs": "https://qoder.com/download",
+      "install": {
+        "default": { "type": "manual", "url": "https://qoder.com/download", "note": "Linux 下可免 root 解包 deb 到 ~/.local/opt/Qoder-CN" }
+      }
+    },
+    {
+      "id": "workbuddy",
+      "name": "腾讯 WorkBuddy",
+      "vendor": "腾讯",
+      "kind": "gui",
+      "bins": { "default": "workbuddy", "windows": null },
+      "free": "个人免费额度",
+      "login": "手机号 / 扫码",
+      "proxy": false,
+      "docs": "https://www.workbuddy.cn",
+      "install": {
+        "default": { "type": "manual", "url": "https://www.workbuddy.cn/v2/update?platform=workbuddy-linux-x64-deb", "note": "该地址返回 JSON，取其中 url 字段下载 deb；更新会重写安装目录" }
+      }
+    },
+    {
+      "id": "antigravity",
+      "name": "Antigravity IDE",
+      "vendor": "Google",
+      "kind": "gui",
+      "bins": { "default": "antigravity-ide", "windows": null },
+      "free": "Google 账号免费档",
+      "login": "Google 账号",
+      "proxy": true,
+      "docs": "https://antigravity.google",
+      "install": {
+        "default": { "type": "manual", "url": "https://antigravity.google", "note": "下载官方安装包；Linux 可用 tar.gz 免 root 解包" }
+      }
+    },
+    {
+      "id": "vscode",
+      "name": "VS Code",
+      "vendor": "Microsoft",
+      "kind": "gui",
+      "bins": "code",
+      "free": "免费",
+      "login": "无需登录（扩展内登录）",
+      "proxy": false,
+      "docs": "https://code.visualstudio.com/download",
+      "install": {
+        "default": { "type": "manual", "url": "https://code.visualstudio.com/download", "note": "Linux 可用官方 tar.gz" },
+        "windows": { "type": "winget", "id": "Microsoft.VisualStudioCode" }
+      }
+    },
+    {
+      "id": "ext-claude-code",
+      "name": "Claude Code 扩展",
+      "vendor": "Anthropic",
+      "kind": "ext",
+      "bins": "code",
+      "free": "需订阅或 API Key",
+      "login": "VS Code 内登录",
+      "proxy": true,
+      "docs": "https://marketplace.visualstudio.com/items?itemName=anthropic.claude-code",
+      "install": { "default": { "type": "vscode-ext", "id": "anthropic.claude-code" } }
+    },
+    {
+      "id": "ext-cline",
+      "name": "Cline 扩展",
+      "vendor": "Cline",
+      "kind": "ext",
+      "bins": "code",
+      "free": "可选免费 provider / BYOK",
+      "login": "VS Code 内配置 provider",
+      "proxy": false,
+      "docs": "https://marketplace.visualstudio.com/items?itemName=saoudrizwan.claude-dev",
+      "install": { "default": { "type": "vscode-ext", "id": "saoudrizwan.claude-dev" } }
+    },
+    {
+      "id": "ext-kilo-code",
+      "name": "Kilo Code 扩展",
+      "vendor": "Kilo",
+      "kind": "ext",
+      "bins": "code",
+      "free": "可选免费 provider / BYOK",
+      "login": "VS Code 内配置 provider",
+      "proxy": false,
+      "docs": "https://marketplace.visualstudio.com/items?itemName=kilocode.kilo-code",
+      "install": { "default": { "type": "vscode-ext", "id": "kilocode.kilo-code" } }
+    },
+    {
+      "id": "ext-continue",
+      "name": "Continue 扩展",
+      "vendor": "Continue",
+      "kind": "ext",
+      "bins": "code",
+      "free": "BYOK",
+      "login": "VS Code 内配置 provider",
+      "proxy": false,
+      "docs": "https://marketplace.visualstudio.com/items?itemName=continue.continue",
+      "install": { "default": { "type": "vscode-ext", "id": "continue.continue" } }
+    },
+    {
+      "id": "ext-codebuddy",
+      "name": "CodeBuddy 扩展",
+      "vendor": "腾讯",
+      "kind": "ext",
+      "bins": "code",
+      "free": "个人免费额度",
+      "login": "VS Code 内登录",
+      "proxy": false,
+      "docs": "https://marketplace.visualstudio.com/items?itemName=tencent-cloud.coding-copilot",
+      "install": { "default": { "type": "vscode-ext", "id": "tencent-cloud.coding-copilot" } }
+    },
+    {
+      "id": "ext-comate",
+      "name": "Comate 文心快码",
+      "vendor": "百度",
+      "kind": "ext",
+      "bins": "code",
+      "free": "个人免费额度",
+      "login": "VS Code 内登录",
+      "proxy": false,
+      "docs": "https://marketplace.visualstudio.com/items?itemName=baiducomate.comate",
+      "install": { "default": { "type": "vscode-ext", "id": "baiducomate.comate" } }
+    },
+    {
+      "id": "ext-marscode",
+      "name": "MarsCode / TRAE 助手",
+      "vendor": "字节跳动",
+      "kind": "ext",
+      "bins": "code",
+      "free": "个人免费额度",
+      "login": "VS Code 内登录",
+      "proxy": false,
+      "docs": "https://marketplace.visualstudio.com/items?itemName=marscode.marscode-extension",
+      "install": { "default": { "type": "vscode-ext", "id": "marscode.marscode-extension" } }
+    },
+    {
+      "id": "ext-lingma",
+      "name": "通义灵码 / Qoder",
+      "vendor": "阿里",
+      "kind": "ext",
+      "bins": "code",
+      "free": "个人免费额度",
+      "login": "VS Code 内登录",
+      "proxy": false,
+      "docs": "https://marketplace.visualstudio.com/items?itemName=alibaba-cloud.tongyi-lingma",
+      "install": { "default": { "type": "vscode-ext", "id": "alibaba-cloud.tongyi-lingma" } }
+    },
+    {
+      "id": "ext-gemini",
+      "name": "Gemini Code Assist",
+      "vendor": "Google",
+      "kind": "ext",
+      "bins": "code",
+      "free": "Google 账号免费档",
+      "login": "VS Code 内登录 Google",
+      "proxy": true,
+      "docs": "https://marketplace.visualstudio.com/items?itemName=google.geminicodeassist",
+      "install": { "default": { "type": "vscode-ext", "id": "google.geminicodeassist" } }
+    },
+    {
+      "id": "ext-amazon-q",
+      "name": "Amazon Q Developer",
+      "vendor": "AWS",
+      "kind": "ext",
+      "bins": "code",
+      "free": "Builder ID 免费档",
+      "login": "VS Code 内登录 AWS",
+      "proxy": true,
+      "docs": "https://marketplace.visualstudio.com/items?itemName=amazonwebservices.amazon-q-vscode",
+      "install": { "default": { "type": "vscode-ext", "id": "amazonwebservices.amazon-q-vscode" } }
+    },
+    {
+      "id": "ext-cody",
+      "name": "Sourcegraph Cody",
+      "vendor": "Sourcegraph",
+      "kind": "ext",
+      "bins": "code",
+      "free": "免费档",
+      "login": "VS Code 内登录",
+      "proxy": false,
+      "docs": "https://marketplace.visualstudio.com/items?itemName=sourcegraph.cody-ai",
+      "install": { "default": { "type": "vscode-ext", "id": "sourcegraph.cody-ai" } }
+    },
+    {
+      "id": "ext-codegeex",
+      "name": "CodeGeeX",
+      "vendor": "智谱",
+      "kind": "ext",
+      "bins": "code",
+      "free": "免费",
+      "login": "VS Code 内登录",
+      "proxy": false,
+      "docs": "https://marketplace.visualstudio.com/items?itemName=aminer.codegeex",
+      "install": { "default": { "type": "vscode-ext", "id": "aminer.codegeex" } }
+    },
+    {
+      "id": "ext-tabnine",
+      "name": "Tabnine",
+      "vendor": "Tabnine",
+      "kind": "ext",
+      "bins": "code",
+      "free": "免费档",
+      "login": "VS Code 内登录",
+      "proxy": false,
+      "docs": "https://marketplace.visualstudio.com/items?itemName=tabnine.tabnine-vscode",
+      "install": { "default": { "type": "vscode-ext", "id": "tabnine.tabnine-vscode" } }
+    },
+    {
+      "id": "ext-augment",
+      "name": "Augment Code",
+      "vendor": "Augment",
+      "kind": "ext",
+      "bins": "code",
+      "free": "试用额度",
+      "login": "VS Code 内登录",
+      "proxy": true,
+      "docs": "https://marketplace.visualstudio.com/items?itemName=augment.vscode-augment",
+      "install": { "default": { "type": "vscode-ext", "id": "augment.vscode-augment" } }
+    },
+    {
+      "id": "ext-iflow",
+      "name": "iFlow 扩展",
+      "vendor": "iFlow",
+      "kind": "ext",
+      "bins": "code",
+      "free": "免费",
+      "login": "VS Code 内登录",
+      "proxy": false,
+      "docs": "https://marketplace.visualstudio.com/items?itemName=iflow-cli.iflow-cli-vscode-ide-companion",
+      "install": { "default": { "type": "vscode-ext", "id": "iflow-cli.iflow-cli-vscode-ide-companion" } }
+    }
+  ]
+}
